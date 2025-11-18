@@ -15,6 +15,21 @@ const weights = [];
 
 const playground = document.getElementById("playground");
 const seesaw = document.getElementById("seesaw");
+const seesawGroup = document.getElementById("seesaw-group");
+
+const leftWeightElement = document.getElementById("left-weight-value");
+const rightWeightElement = document.getElementById("right-weight-value");
+const nextWeightElement = document.getElementById("next-weight-value");
+const tiltAngleElement = document.getElementById("tilt-angle-value");
+
+let nextWeight = 0;
+
+function generateNextWeight() {
+  nextWeight = Math.floor(Math.random() * 10) + 1;
+  nextWeightElement.textContent = `${nextWeight} kg`;
+}
+
+generateNextWeight();
 
 playground.addEventListener("click", (event) => {
     const rect = playground.getBoundingClientRect();
@@ -38,8 +53,8 @@ playground.addEventListener("click", (event) => {
     const ball = document.createElement("div");
     ball.classList.add("weight-object");
 
-    const weightValue = Math.floor(Math.random() * 10) + 1;
-    ball.textContent = weightValue;
+    const weightValue =  nextWeight;
+    ball.textContent = weightValue + "kg";
 
     const randomIndex = Math.floor(Math.random() * COLORS.length);
     const randomColor = COLORS[randomIndex];
@@ -49,9 +64,17 @@ playground.addEventListener("click", (event) => {
     ball.style.width = size + "px";
     ball.style.height = size + "px";
 
-    playground.appendChild(ball);
+    const startY = size / 2 + 5;
     ball.style.left = clickX + "px";
-    ball.style.top = seesawCenterY + "px"; 
+    ball.style.top  = startY + "px";
+    ball.style.opacity = "0.3";
+    
+    playground.appendChild(ball);
+
+    requestAnimationFrame(() => {
+        ball.style.top = seesawCenterY + "px";  
+        ball.style.opacity = "1";
+    });
 
     const pivotX = (seesawLeft + seesawRight) / 2;
 
@@ -61,34 +84,55 @@ playground.addEventListener("click", (event) => {
     } else if (clickX > pivotX) {
         side = "right";
     } else {
-        side = "center"; // tam ortaya tıklandıysa, şimdilik özel durum
+        side = "center"; 
     }
 
     const distance = Math.abs(clickX - pivotX);
+    const weightData = { 
+        weight: weightValue,
+        side,
+        distance 
+    };
+
+    const onTransitionEnd = (e) => {
+        if (e.propertyName !== "top") return;
+        ball.removeEventListener("transitionend", onTransitionEnd);
+
+        const currentLeft = ball.style.left;
+        const currentTop = ball.style.top;
+
+        seesawGroup.appendChild(ball);
+        ball.style.left = currentLeft;
+        ball.style.top = currentTop;
+
+        weights.push(weightData);
+        calculateTorques();
+        generateNextWeight();
+    };
+
+    ball.addEventListener("transitionend", onTransitionEnd);
+    
     console.log("side:", side, "distance:", distance);
 
-    weights.push({
-        weight: weightValue,
-        side: side,
-        distance: distance
-    });
-    console.log(weights);
-
-    calculateTorques();
-
+    
 });
 
 function calculateTorques() {
     let leftTorque = 0;
     let rightTorque = 0;
 
+    let leftWeightSum = 0;
+    let rightWeightSum = 0;
+
     for (const w of weights) {
         const torque = w.weight * w.distance;
 
         if (w.side === "left") {
             leftTorque += torque;
+            leftWeightSum += w.weight;
         } else if (w.side === "right") {
             rightTorque += torque;
+            rightWeightSum += w.weight; 
         }
     }
 
@@ -99,7 +143,18 @@ function calculateTorques() {
 
     const angle = Math.max(-30, Math.min(30, (rightTorque - leftTorque) / 10));
 
-    seesaw.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+    seesawGroup.style.transform = `rotate(${angle}deg)`;
+    leftWeightElement.textContent = `${leftWeightSum.toFixed(1)} kg`;
+    rightWeightElement.textContent = `${rightWeightSum.toFixed(1)} kg`;
+    tiltAngleElement.textContent = `${angle.toFixed(1)}°`;
+
+    console.log(
+    "Left Torque:", leftTorque,
+    "Right Torque:", rightTorque,
+    "Net:", netTorque,
+    "Angle:", angle
+  );
+
 }
 
 
