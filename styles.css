@@ -115,3 +115,54 @@ body {
 #reset-button:hover {
     background-color: #bfd6f5;
 }
+
+#weight-preview {
+    position: absolute;
+    display: none;
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+}
+
+#weight-preview-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #6ab4f8;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin-bottom: 4px;
+}
+
+#weight-preview-line {
+    width: 0;
+    height: 60px;
+    border-left: 2px dashed rgba(0,0,0,0.4);
+    margin: 0 auto;
+}
+
+#pivot-distance {
+    position: absolute;
+    display: none;
+    pointer-events: none;
+}
+
+#pivot-distance-line {
+    height: 0;
+    border-top: 2px dashed rgba(0,0,0,0.35);
+}
+
+#pivot-distance-label {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    padding: 2px 4px;
+    background-color: rgba(255, 255, 255, 0.85);
+    border-radius: 4px;
+}

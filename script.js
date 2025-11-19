@@ -23,14 +23,64 @@ const rightWeightElement = document.getElementById("right-weight-value");
 const nextWeightElement = document.getElementById("next-weight-value");
 const tiltAngleElement = document.getElementById("tilt-angle-value");
 
+const preview = document.getElementById("weight-preview");
+const previewCircle = document.getElementById("weight-preview-circle");
+
+const pivotDistance = document.getElementById("pivot-distance");
+const pivotDistanceLine = document.getElementById("pivot-distance-line");
+const pivotDistanceLabel = document.getElementById("pivot-distance-label");
+
 let nextWeight = 0;
 
 function generateNextWeight() {
   nextWeight = Math.floor(Math.random() * 10) + 1;
   nextWeightElement.textContent = `${nextWeight} kg`;
+
+  if (previewCircle) {
+    previewCircle.textContent = nextWeight + "kg";
+  }
 }
 
 loadState();
+
+playground.addEventListener("mousemove", (event) => {
+    const rect = playground.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+
+    const seesawRect = seesaw.getBoundingClientRect();
+    const seesawLeft = seesawRect.left - rect.left;
+    const seesawRight = seesawLeft + seesawRect.width;
+    const seesawCenterY = (seesawRect.top - rect.top) + seesawRect.height / 2;
+    const pivotX = (seesawLeft + seesawRight) /2;
+
+    if (mouseX  < seesawLeft || mouseX > seesawRight) {
+        preview.style.display = "none";
+        pivotDistance.style.display = "none";
+        return;
+    }
+
+    preview.style.display = "block";
+    previewCircle.textContent = nextWeight + "kg";
+    preview.style.left = mouseX + "px";
+    preview.style.top = seesawCenterY + "px";
+
+    const distance = Math.abs(mouseX - pivotX);
+
+    pivotDistance.style.display = "block";
+    const lineleft = Math.min(mouseX, pivotX);
+    pivotDistance.style.left = lineleft + "px";
+    pivotDistance.style.top = (seesawCenterY -25) + "px";
+
+    pivotDistanceLine.style.width = distance + "px";
+    pivotDistanceLabel.textContent = `${Math.round(distance)} px`;
+});
+
+playground.addEventListener("mouseleave", () =>{
+    preview.style.display = "none";
+    pivotDistance.style.display = "none";
+});
+
+
 
 playground.addEventListener("click", (event) => {
     const rect = playground.getBoundingClientRect();
