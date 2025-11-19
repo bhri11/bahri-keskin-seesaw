@@ -16,6 +16,7 @@ const weights = [];
 const playground = document.getElementById("playground");
 const seesaw = document.getElementById("seesaw");
 const seesawGroup = document.getElementById("seesaw-group");
+const resetButton = document.getElementById("reset-button");
 
 const leftWeightElement = document.getElementById("left-weight-value");
 const rightWeightElement = document.getElementById("right-weight-value");
@@ -29,7 +30,7 @@ function generateNextWeight() {
   nextWeightElement.textContent = `${nextWeight} kg`;
 }
 
-generateNextWeight();
+loadState();
 
 playground.addEventListener("click", (event) => {
     const rect = playground.getBoundingClientRect();
@@ -91,7 +92,8 @@ playground.addEventListener("click", (event) => {
     const weightData = { 
         weight: weightValue,
         side,
-        distance 
+        distance,
+        color: randomColor  
     };
 
     const onTransitionEnd = (e) => {
@@ -149,12 +151,120 @@ function calculateTorques() {
     tiltAngleElement.textContent = `${angle.toFixed(1)}°`;
 
     console.log(
-    "Left Torque:", leftTorque,
-    "Right Torque:", rightTorque,
-    "Net:", netTorque,
-    "Angle:", angle
-  );
+        "Left Torque:", leftTorque,
+        "Right Torque:", rightTorque,
+        "Net:", netTorque,
+        "Angle:", angle
+    );
+    saveState();
 
 }
 
+function resetSeesaw() {
+    weights.length = 0;
+
+    const balls = document.querySelectorAll(".weight-object");
+    balls.forEach(ball => ball.remove());
+
+    seesawGroup.style.transform = "rotate(0deg)";
+    leftWeightElement.textContent = "0.0 kg";
+    rightWeightElement.textContent = "0.0 kg";
+    tiltAngleElement.textContent = "0.0°";
+
+    localStorage.removeItem("seesawState");
+
+    generateNextWeight();
+}
+
+resetButton.addEventListener("click", resetSeesaw);
+
+function saveState() {
+    const state = {
+        weights: weights,
+        nextWeight: nextWeight
+    };
+
+    localStorage.setItem("seesawState", JSON.stringify(state));
+}
+
+function loadState() {
+    const saved = localStorage.getItem("seesawState");
+
+    if(!saved) {
+        generateNextWeight();
+        return;
+    }
+
+    const state = JSON.parse(saved);
+
+    weights.length = 0;
+    if(Array.isArray(state.weights)) {
+        for (const w of state.weights) {
+            weights.push(w);
+        }
+    }
+
+    if(typeof state.nextWeight === "number") {
+        nextWeight = state.nextWeight;
+        nextWeightElement.textContent = `${nextWeight} kg`;
+    } else {
+        generateNextWeight();
+    }
+    
+    renderBallsFromState();
+
+    calculateTorques();
+}
+
+
+function renderBallsFromState() {
+
+    //playground ve tahtanin konumlarini al 
+    const rect = playground.getBoundingClientRect();
+    const seesawRect = seesaw.getBoundingClientRect();
+    const seesawLeft = seesawRect.left - rect.left;
+    const seesawRight = seesawLeft + seesawRect.width;
+    const seesawCenterY = (seesawRect.top - rect.top) + seesawRect.height / 2;
+    const pivotX = (seesawLeft + seesawRight) / 2;
+
+    // eski toplari eger varsa silme 
+    const oldBalls = document.querySelectorAll(".weight-object");
+    oldBalls.forEach(ball => ball.remove());
+
+    // kayitli agirliklar icin top olusturma
+    for (const w of weights) {
+        const ball = document.createElement("div");
+        ball.classList.add("weight-object");
+        ball.textContent = w.weight + "kg";
+
+        // rastgele renk secme
+        let color = w.color;
+        if(!color){
+            const randomIndex = Math.floor(Math.random() * COLORS.length);
+            color = COLORS[randomIndex];
+        }
+        ball.style.backgroundColor = color;
+
+        // boyut belirleme
+        const size = 20 + w.weight * 4;
+        ball.style.width = size + "px";
+        ball.style.height = size + "px";
+
+        // konum belirleme
+        let x = pivotX;
+        if (w.side === "left") { 
+            x = pivotX - w.distance;
+        }else if (w.side === "right") {
+            x = pivotX + w.distance;
+        }
+
+        ball.style.left = x + "px";
+        ball.style.top = seesawCenterY + "px";
+        ball.style.opacity = "1";
+
+        seesawGroup.appendChild(ball);
+
+    }
+
+}
 
