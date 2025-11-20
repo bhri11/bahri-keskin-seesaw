@@ -2,11 +2,7 @@ body {
     background-color: #f3f3f3;
     margin: 0;
     font: 16px Arial, sans-serif;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    padding: 20px 0;
 }
 
 #stats {
@@ -108,8 +104,6 @@ body {
     border: 2px solid #4a90e2;
     border-radius: 5px;
     cursor: pointer;
-    position: absolute;
-    transform: translate(-50%, -50%);
 }
 
 #reset-button:hover {
@@ -165,4 +159,47 @@ body {
     padding: 2px 4px;
     background-color: rgba(255, 255, 255, 0.85);
     border-radius: 4px;
+}
+
+#drop-log-container {
+    width: 900px;
+    margin: 10px auto 0 auto;
+    background-color: #f8fafc;
+    border-radius: 6px;
+    padding: 8px 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+#drop-log {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.log-item {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    padding: 6px 0;
+    border-radius: 6px;
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    border-left: 4px solid #cbd5e1;
+}
+
+.log-item:first-child {
+    border-top: none;
+}
+
+.log-bullet {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
 }

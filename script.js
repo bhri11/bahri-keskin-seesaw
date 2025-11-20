@@ -30,6 +30,12 @@ const pivotDistance = document.getElementById("pivot-distance");
 const pivotDistanceLine = document.getElementById("pivot-distance-line");
 const pivotDistanceLabel = document.getElementById("pivot-distance-label");
 
+const dropLog = document.getElementById("drop-log");
+
+const dropSound = new Audio("sounds/pop-cartoon.mp3");
+//const dropSound = new Audio("sounds/ball-dropping-on-bench.mp3");
+dropSound.volume = 0.7; 
+
 let nextWeight = 0;
 
 function generateNextWeight() {
@@ -150,6 +156,9 @@ playground.addEventListener("click", (event) => {
         if (e.propertyName !== "top") return;
         ball.removeEventListener("transitionend", onTransitionEnd);
 
+        dropSound.currentTime = 0;
+        dropSound.play();
+
         const currentLeft = ball.style.left;
         const currentTop = ball.style.top;
 
@@ -158,6 +167,9 @@ playground.addEventListener("click", (event) => {
         ball.style.top = currentTop;
 
         weights.push(weightData);
+
+        addLogEntry(weightData);
+
         calculateTorques();
         generateNextWeight();
     };
@@ -223,6 +235,10 @@ function resetSeesaw() {
 
     localStorage.removeItem("seesawState");
 
+    if(dropLog) {
+        dropLog.innerHTML = "";
+    }
+
     generateNextWeight();
 }
 
@@ -262,6 +278,7 @@ function loadState() {
     }
     
     renderBallsFromState();
+    rebuildLogFromState();
 
     calculateTorques();
 }
@@ -317,4 +334,47 @@ function renderBallsFromState() {
     }
 
 }
+
+function addLogEntry(w) {
+    if(!dropLog) return;
+
+    const li = document.createElement("li");
+    li.classList.add("log-item");
+
+    const bullet = document.createElement("span"); 
+    bullet.classList.add("log-bullet");
+    bullet.style.backgroundColor = w.color || "#e67e22";
+
+    li.style.borderLeftColor = w.color || "#e67e22";
+
+    const text = document.createElement("span");
+    let sideText;
+    
+    if (w.side === "left") {
+        sideText = "left side";
+    } else if (w.side === "right") {
+        sideText = "right side";
+    } else {
+        sideText = "center";
+    }
+
+    const distancePx = Math.round(w.distance);
+    text.textContent = `${w.weight}kg dropped on ${sideText} at ${distancePx}px from pivot.`;
+
+    li.appendChild(bullet);
+    li.appendChild(text);
+
+    dropLog.appendChild(li);
+}
+
+function rebuildLogFromState() {
+    if(!dropLog) return;
+
+    dropLog.innerHTML = "";
+    for(const w of weights) {
+        addLogEntry(w);
+    }
+}
+
+
 
